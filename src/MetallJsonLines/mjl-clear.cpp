@@ -20,7 +20,7 @@ int ygm_main(ygm::comm& world, int argc, char** argv)
   int             error_code = 0;
   clippy::clippy  clip{METHOD_NAME, "Erases ALL elements in MetallJsonLines (selection is ignored)."};
 
-  clip.member_of(MJL_CLASS_NAME, "A " + MJL_CLASS_NAME + " class");
+  clip.member_of(CLASS_NAME, "A " + CLASS_NAME + " class");
 
   clip.add_required_state<std::string>(ST_METALL_LOCATION, "Metall storage location");
 
@@ -28,13 +28,10 @@ int ygm_main(ygm::comm& world, int argc, char** argv)
 
   try
   {
-    using metall_manager = xpr::MetallJsonLines::metall_manager_type;
-
     const std::string    dataLocation = clip.get_state<std::string>(ST_METALL_LOCATION);
-    metall_manager       mm{metall::open_only, dataLocation.data(), MPI_COMM_WORLD};
-    xpr::MetallJsonLines lines{mm, world};
+    xpr::MetallJsonLines lines{world, metall::open_read_only, dataLocation, MPI_COMM_WORLD};
 
-    lines /* \todo .filter(filter(world.rank(), clip, KEYS_SELECTOR)) */
+    lines /* \todo .filter(filter(world.rank(), clip, SELECTOR)) */
          .clear();
 
     assert(lines.count() == 0);

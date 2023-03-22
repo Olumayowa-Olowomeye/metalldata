@@ -5,7 +5,14 @@
 
 /// \brief Implements MetallJsonLines selector function (getItem).
 
+#include <iostream>
+#include <boost/json.hpp>
+
 #include "mjl-common.hpp"
+
+
+namespace bjsn    = boost::json;
+namespace mtljsn  = metall::container::experimental::json;
 
 namespace
 {
@@ -13,16 +20,23 @@ const std::string methodName = "__getitem__";
 const std::string expr = "expressions";
 } // anonymous
 
+void append(std::vector<boost::json::object>& lhs, std::vector<boost::json::object> rhs)
+{
+  if (lhs.size() == 0) return lhs.swap(rhs);
+
+  std::move(rhs.begin(), rhs.end(), std::back_inserter(lhs));
+}
+
 
 int ygm_main(ygm::comm& world, int argc, char** argv)
 {
   int            error_code = 0;
   clippy::clippy clip{methodName, "Sets the selector predicate(s)."};
 
-  clip.member_of(MJL_CLASS_NAME, "A " + MJL_CLASS_NAME + " class");
+  clip.member_of(CLASS_NAME, "A " + CLASS_NAME + " class");
 
   clip.add_required<std::vector<boost::json::object>>(expr, "Expression selection");
-  clip.add_selector<std::string>(KEYS_SELECTOR, "Row selection key");
+  clip.add_selector<std::string>(SELECTOR, "Row selection predicate");
   clip.add_required_state<std::string>(ST_METALL_LOCATION, "Metall storage location");
 
   // \note running on rank 0 suffices
@@ -49,7 +63,7 @@ int ygm_main(ygm::comm& world, int argc, char** argv)
       state.set_val(ST_METALL_LOCATION, std::move(location));
       state.set_val(ST_SELECTED,        std::move(selectedExpression));
 
-      clippy_type.set_val("__class__", MJL_CLASS_NAME);
+      clippy_type.set_val("__class__", CLASS_NAME);
       clippy_type.set_json("state",    std::move(state));
 
       res.set_json("__clippy_type__",  std::move(clippy_type));
