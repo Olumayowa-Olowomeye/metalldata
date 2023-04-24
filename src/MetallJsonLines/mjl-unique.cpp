@@ -24,7 +24,6 @@ namespace
 {
 
 const std::string    methodName      = "unique";
-const std::string    LIST    = "list"; //if true return list of unique elements
 const std::string    COLUMNS         = "columns";
 const ColumnSelector DEFAULT_COLUMNS = {};
 
@@ -35,8 +34,6 @@ int ygm_main(ygm::comm& world, int argc, char** argv)
   clippy::clippy clip{methodName, "Returns the number of unique elements within the given columns"};
 
   clip.member_of(CLASS_NAME, "A " + CLASS_NAME + " class");
-
-  clip.add_optional<bool>(LIST, "Return the list of unique elements if true", false);
   clip.add_optional<ColumnSelector>(COLUMNS, "projection list (list of columns to put out)", DEFAULT_COLUMNS);
   clip.add_required_state<std::string>(ST_METALL_LOCATION, "Metall storage location");
   if (clip.parse(argc, argv, world)) { return 0; }
@@ -53,7 +50,7 @@ int ygm_main(ygm::comm& world, int argc, char** argv)
     auto data = lines.head(1,projector(COLUMNS,clip));
     std::vector<std::string> type;
     for (auto j : cols){
-      auto t = data.at(0).as_object().at(j); //change to case switch?
+      auto t = data.at(0).as_object().at(j);
       if(t.is_int64()){
         ygm::container::set<int> uni(world);                           
         lines.forAllSelected([&j,&len,&uni](std::size_t x, auto& el){
